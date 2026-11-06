@@ -1,7 +1,8 @@
 """Worker: marks new orders as processed every few seconds."""
 import logging
 import os
-import time
+import signal
+import threading
 
 import psycopg
 
@@ -17,6 +18,15 @@ DB_DSN = (
 )
 INTERVAL = int(os.getenv("POLL_INTERVAL_SECONDS", "5"))
 
+# Set when Kubernetes asks the pod to stop (SIGTERM), so the loop can exit cleanly.
+# Without this, Python runs as PID 1, ignores SIGTERM and is force-killed (exit 137).
+stop = threading.Event()
+
+
+def handle_shutdown(signum, _frame):
+    log.info("received %s, shutting down", signal.Signals(signum).name)
+    stop.set()
+
 
 def process_once() -> int:
     with psycopg.connect(DB_DSN, connect_timeout=3) as conn, conn.cursor() as cur:
@@ -29,15 +39,18 @@ def process_once() -> int:
 
 
 def main():
+    signal.signal(signal.SIGTERM, handle_shutdown)
+    signal.signal(signal.SIGINT, handle_shutdown)
     log.info("worker started, polling every %ss", INTERVAL)
-    while True:
+    while not stop.is_set():
         try:
             done = process_once()
             if done:
                 log.info("processed %d order(s)", done)
         except Exception as exc:  # noqa: BLE001
             log.warning("database not reachable yet: %s", exc)
-        time.sleep(INTERVAL)
+        stop.wait(INTERVAL)  # returns early as soon as a shutdown signal arrives
+    log.info("worker stopped")
 
 
 if __name__ == "__main__":
