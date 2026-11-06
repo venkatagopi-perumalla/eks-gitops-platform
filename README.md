@@ -102,7 +102,7 @@ About **$0.23 per hour** while EKS is running (control plane, NAT gateway, 2 Spo
 | One failed matrix build cancelled the other two | GitHub's default `fail-fast: true` | Set `fail-fast: false` so each service reports independently |
 | `Permission denied` running scripts | Executable bits were lost when files passed through Windows | `chmod +x` and committed the mode change |
 | SLO alert did not fire after the bad deploy | The load generator had stopped, so there was no traffic to fail | Restarted traffic; prevention action in the RCA: add a synthetic probe |
-| Worker exits with code 137 on shutdown | The Python process runs as PID 1 and ignores SIGTERM, so it is force-killed after the grace period | Open: add a SIGTERM handler (or `tini`) so pods stop cleanly |
+| Worker exits with code 137 on shutdown | The Python process runs as PID 1 and ignores SIGTERM, so it is force-killed after the grace period | Added a SIGTERM handler: the worker finishes its current loop and exits with code 0 in under a second |
 
 ## What I'd add next
 
