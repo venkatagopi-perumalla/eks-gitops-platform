@@ -1,8 +1,8 @@
 # State lives in the S3 bucket created by ../../bootstrap.
-# scripts/configure.sh replaces 472639329900 with your AWS account ID.
+# scripts/configure.sh replaces ACCOUNT_ID with your AWS account ID.
 terraform {
   backend "s3" {
-    bucket       = "tfstate-472639329900-eks-gitops"
+    bucket       = "tfstate-ACCOUNT_ID-eks-gitops"
     key          = "dev/terraform.tfstate"
     region       = "eu-north-1"
     encrypt      = true
