@@ -76,7 +76,7 @@ jobs:
           ignore-unfixed: true
           exit-code: "1"
 
-      - name: Log in to AWS with OIDC (no stored keys)
+      - name: Log in to AWS (least-privilege IAM user; role used instead if AWS_ROLE_ARN is set)
         if: github.event_name != 'pull_request'
         uses: aws-actions/configure-aws-credentials@v4
         with:
